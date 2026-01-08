@@ -1,0 +1,16 @@
+{
+    "trades": [
+        {
+            "trade_id": "t-d9426abe",
+            "account_id": "demo-123",
+            "symbol": "AAPL",
+            "side": "BUY",
+            "qty": 10,
+            "trigger_price": 150,
+            "status": "closed",
+            "entry_price": 150,
+            "exit_price": 150,
+            "pnl": 0
+        }
+    ]
+}

@@ -10,3 +10,4 @@ def get_me(current_user: dict = Depends(get_current_user)):
         "email": current_user["email"],
         "role": current_user.get("role", "user")
     }
+
