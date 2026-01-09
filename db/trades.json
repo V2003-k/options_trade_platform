@@ -1,16 +1,18 @@
-{
-    "trades": [
-        {
-            "trade_id": "t-d9426abe",
-            "account_id": "demo-123",
-            "symbol": "AAPL",
-            "side": "BUY",
-            "qty": 10,
-            "trigger_price": 150,
-            "status": "closed",
-            "entry_price": 150,
-            "exit_price": 150,
-            "pnl": 0
-        }
-    ]
-}
+[
+    {
+        "id": "3524670a-4d80-4093-8c2c-5df897e1a951",
+        "user_id": "13f9986d-f158-473e-bd9c-caaff6ab894a",
+        "account_id": "a1cae4fb-286d-4713-a22a-d4c9a2cd77bf",
+        "symbol": "AAPL",
+        "side": "BUY",
+        "qty": 4,
+        "trigger_price": 155.0,
+        "entry_price": 150,
+        "status": "closed",
+        "timestamp": "2026-01-09T06:42:08.273893",
+        "entry_point": 150.0,
+        "exit_price": 150,
+        "pnl": 0,
+        "closed_timestamp": "2026-01-09T06:45:43.710171"
+    }
+]

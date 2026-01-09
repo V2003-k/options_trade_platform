@@ -6,7 +6,7 @@ router = APIRouter()
 @router.get("/me")
 def get_me(current_user: dict = Depends(get_current_user)):
     return {
-        "user_id": current_user["user_id"],
+        "user_id": current_user["id"],
         "email": current_user["email"],
         "role": current_user.get("role", "user")
     }

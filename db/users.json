@@ -1,0 +1,14 @@
+[
+    {
+        "id": "2755acba-63ae-490d-8e1c-26efeedadf7a",
+        "email": "vishwajeet@gmail.com",
+        "hashed_password": "$2b$12$Gr0ThG5DFgrcOmWeFMgG.O4iog9F0KPXsf/.qzaoWlHH6lhL88tA2",
+        "role": "user"
+    },
+    {
+        "id": "13f9986d-f158-473e-bd9c-caaff6ab894a",
+        "email": "vishwajeetkhaple@gmail.com",
+        "hashed_password": "$2b$12$2YYY51.VWtpDiBxgU/uyPegcawAwx7MI1vimRUleTDScosyT.6Lre",
+        "role": "user"
+    }
+]

@@ -1,57 +1,110 @@
 import uuid
-from utils.json_db import read_db, write_db
+from datetime import datetime
 from config import DEMO_PRICES
 from trades.pnl_calculation import calculate_pnl
+from fastapi import HTTPException, status
 
+def place_trade(user: dict, payload: dict, users_db, accounts_db, trades_db):
+    try:
+        account_id = payload["account_id"]
+        symbol = payload["symbol"].upper()
+        side = payload["side"].upper() # BUY or SELL
+        qty = payload["quantity"]
+        trigger_price = payload["trigger_point"]
 
-def place_trade(user: dict, payload: dict):
-    data = read_db("db/trades.json")
-    
-    if "trades" not in data:
-        data["trades"] = []
-    trade = {
-        "trade_id": f"t-{uuid.uuid4().hex[:8]}",
-        "account_id": payload["account_id"],
-        "symbol": payload["symbol"],
-        "side": payload["side"],
-        "qty": payload["qty"],
-        "trigger_price": payload["trigger_price"],
-        "status": "placed"
-    }
+        # Validate account ownership
+        account = accounts_db.find_one({"id": account_id, "user_id": user["id"]})
+        if not account:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Account not found or does not belong to user")
 
-    data["trades"].append(trade)
-    write_db("db/trades.json", data)
+        if symbol not in DEMO_PRICES:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid symbol: {symbol}")
+
+        current_price = DEMO_PRICES[symbol]
+
+        # Basic balance check for BUY orders
+        if side == "BUY":
+            cost = qty * current_price
+            if account["balance"] < cost:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient balance")
+            account["balance"] -= cost
+        elif side == "SELL":
+            # For simplicity, assuming unlimited short selling for paper trading or user has position
+            # In a real app, you'd check if the user has enough shares to sell
+            pass
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid trade side. Must be BUY or SELL")
+
+        trade = {
+            "id": str(uuid.uuid4()),
+            "user_id": user["id"],
+            "account_id": account_id,
+            "symbol": symbol,
+            "side": side,
+            "qty": qty,
+            "trigger_price": trigger_price,
+            "entry_price": current_price, # Placed price is the current demo price
+            "status": "placed",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+
+        trades_db.insert(trade)
+        accounts_db.update({"id": account_id}, {"balance": account["balance"]})
+
+        return trade
+    except Exception as e:
+        print(f"Error in place_trade: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Internal server error: {e}")
+
+def update_trade(user: dict, payload: dict, users_db, accounts_db, trades_db):
+    trade_id = payload["trade_id"]
+    entry_point = payload.get("entry_point")
+
+    trade = trades_db.find_one({"id": trade_id, "user_id": user["id"]})
+    if not trade:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trade not found or does not belong to user")
+
+    if trade["status"] != "placed":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only placed trades can be updated")
+
+    # For simplicity, 'entry_point' is hardcoded to current demo price as per requirements
+    # In a real app, this would be the actual execution price
+    trade["entry_price"] = DEMO_PRICES[trade["symbol"]]
+    trade["status"] = "open" # Change status to open after entry point is set
+    trade["entry_point"] = entry_point # Store the entry_point given by user
+
+    trades_db.update({"id": trade_id}, {"entry_price": trade["entry_price"], "status": "open", "entry_point": entry_point})
     return trade
 
-def update_trade(user: dict, payload: dict):
-    data = read_db("db/trades.json")
+def close_trade(user: dict, payload: dict, users_db, accounts_db, trades_db):
+    trade_id = payload["trade_id"]
 
-    for trade in data["trades"]:
-        if trade["trade_id"] == payload["trade_id"]:
-            trade["entry_price"] = DEMO_PRICES[trade["symbol"]]
-            trade["status"] = "open"
-            write_db("db/trades.json", data)
-            return trade
-        
-    raise ValueError("Trade not found")
+    trade = trades_db.find_one({"id": trade_id, "user_id": user["id"]})
+    if not trade:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Trade not found or does not belong to user")
 
-def close_trade(user: dict, payload: dict):
-    data = read_db("db/trades.json")
+    if trade["status"] != "open":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only open trades can be closed")
 
-    for trade in data["trades"]:
-        if trade["trade_id"] == payload["trade_id"]:
-            # demo price
-            trade["exit_price"] = DEMO_PRICES[trade["symbol"]]
+    exit_price = DEMO_PRICES[trade["symbol"]]
 
-             #  PnL CALCULATION GOES HERE
-            trade["pnl"] = calculate_pnl(
-                trade["entry_price"],
-                trade["exit_price"],
-                trade["qty"],
-                trade["side"]
-            )
-            trade["status"] = "closed"
-            write_db("db/trades.json", data)
-            return trade
-        
-    raise ValueError("Trade not found")
+    pnl = calculate_pnl(
+        trade["entry_price"],
+        exit_price,
+        trade["qty"],
+        trade["side"]
+    )
+
+    # Update account balance with PnL
+    account = accounts_db.find_one({"id": trade["account_id"]})
+    if account:
+        account["balance"] += pnl
+        accounts_db.update({"id": account["id"]}, {"balance": account["balance"]})
+
+    trade["exit_price"] = exit_price
+    trade["pnl"] = pnl
+    trade["status"] = "closed"
+    trade["closed_timestamp"] = datetime.utcnow().isoformat()
+
+    trades_db.update({"id": trade_id}, {"exit_price": exit_price, "pnl": pnl, "status": "closed", "closed_timestamp": trade["closed_timestamp"]})
+    return trade
