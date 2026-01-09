@@ -10,7 +10,9 @@ def get_current_user(
     token = credentials.credentials
     payload = verify_token(token)
 
-    # return a normalized user object
+    if not payload or "user_id" not in payload:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
+
     return {
         "user_id": payload["user_id"],
         "email": payload.get("email", "test@gmail.com"),

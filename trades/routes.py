@@ -7,7 +7,7 @@ router = APIRouter()
 
 @router.get("/")
 def list_trades(current_user: dict = Depends(get_current_user)):
-    data = read_db("trades.json")
+    data = read_db("db/trades.json")
     return data["trades"]
 
 @router.post("/place")

@@ -1,0 +1,14 @@
+{
+  "users": [
+    {
+      "user_id": "3fea60b1-5e63-46bd-b584-b1c19721ec83",
+      "email": "user1@gmail.com",
+      "password": "123456"
+    },
+    {
+      "user_id": "d6926185-b5fe-40c5-af31-7bcc04a0f24e",
+      "email": "user2@gmail.com",
+      "password": "123456"
+    }
+  ]
+}

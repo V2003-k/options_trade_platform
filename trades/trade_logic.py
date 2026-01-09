@@ -8,7 +8,7 @@ def place_trade(user: dict, payload: dict):
     data = read_db("db/trades.json")
     
     if "trades" not in data:
-        data["trades"] = []
+        raise ValueError("No trades found")
     trade = {
         "trade_id": f"t-{uuid.uuid4().hex[:8]}",
         "account_id": payload["account_id"],

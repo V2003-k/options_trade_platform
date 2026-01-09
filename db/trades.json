@@ -11,6 +11,43 @@
             "entry_price": 150,
             "exit_price": 150,
             "pnl": 0
+        },
+        {
+            "trade_id": "t-920d8629",
+            "account_id": "demo-123",
+            "symbol": "AAPL",
+            "side": "BUY",
+            "qty": 10,
+            "trigger_price": 150,
+            "status": "open",
+            "entry_price": 150
+        },
+        {
+            "trade_id": "t-4ccd89a6",
+            "account_id": "ACC001",
+            "symbol": "AAPL",
+            "side": "BUY",
+            "qty": 10,
+            "trigger_price": 148,
+            "status": "placed"
+        },
+        {
+            "trade_id": "t-6da6fe6f",
+            "account_id": "ACC001",
+            "symbol": "AAPL",
+            "side": "BUY",
+            "qty": 10,
+            "trigger_price": 148,
+            "status": "placed"
+        },
+        {
+            "trade_id": "t-5273b73f",
+            "account_id": "ACC001",
+            "symbol": "AAPL",
+            "side": "BUY",
+            "qty": 10,
+            "trigger_price": 148,
+            "status": "placed"
         }
     ]
 }
