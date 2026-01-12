@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Depends
-from auth.jwt_utils import create_access_token
-from auth.password_utils import verify_password, hash_password
+from auth.jwt_utils import create_access_token, verify_password, hash_password
 from utils.auth_dependency import get_db
 import uuid
 

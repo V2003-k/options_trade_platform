@@ -1,14 +1,11 @@
 [
     {
-        "id": "da9a0d7c-ea54-4191-b12c-d7c169b8dbc6",
-        "user_id": "2755acba-63ae-490d-8e1c-26efeedadf7a",
+        "id": "6cbf52da-9b2f-4a31-a8d3-9fad5686dbf7",
+        "user_id": "8ea6cf41-6f1e-40fb-98e8-576f1499424a",
         "account_type": "paper",
-        "balance": 100000.0
-    },
-    {
-        "id": "a1cae4fb-286d-4713-a22a-d4c9a2cd77bf",
-        "user_id": "13f9986d-f158-473e-bd9c-caaff6ab894a",
-        "account_type": "paper",
-        "balance": 99400.0
+        "balance": 80500.0,
+        "positions": {
+            "AAPL": 60
+        }
     }
 ]

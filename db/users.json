@@ -1,14 +1,8 @@
 [
     {
-        "id": "2755acba-63ae-490d-8e1c-26efeedadf7a",
+        "id": "8ea6cf41-6f1e-40fb-98e8-576f1499424a",
         "email": "vishwajeet@gmail.com",
-        "hashed_password": "$2b$12$Gr0ThG5DFgrcOmWeFMgG.O4iog9F0KPXsf/.qzaoWlHH6lhL88tA2",
-        "role": "user"
-    },
-    {
-        "id": "13f9986d-f158-473e-bd9c-caaff6ab894a",
-        "email": "vishwajeetkhaple@gmail.com",
-        "hashed_password": "$2b$12$2YYY51.VWtpDiBxgU/uyPegcawAwx7MI1vimRUleTDScosyT.6Lre",
+        "hashed_password": "$2b$12$LP7XDn1OCCpcqjEftmw/5OTvJcUJMcQd93qSo/KVau4hz8dz2ncAO",
         "role": "user"
     }
 ]

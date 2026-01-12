@@ -10,7 +10,12 @@ def jwt_middleware(request: Request):
     try:
         token = auth_header.split(" ")[1]  # Bearer <token>
         payload = verify_token(token)
+
+        if not payload or "user_id" not in payload:
+            raise HTTPException(status_code=401, detail="Invalid or expired token")
+
         request.state.user_id = payload["user_id"]
         return payload
+
     except IndexError:
         raise HTTPException(status_code=401, detail="Invalid Authorization header")

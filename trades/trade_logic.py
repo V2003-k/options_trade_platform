@@ -12,6 +12,11 @@ def place_trade(user: dict, payload: dict, users_db, accounts_db, trades_db):
         qty = payload["quantity"]
         trigger_price = payload["trigger_point"]
 
+        # --- DEBUG PRINTS START ---
+        print(f"DEBUG: Current User ID from token: {user['id']}")
+        print(f"DEBUG: Account ID received in payload: {account_id}")
+        # --- DEBUG PRINTS END ---
+
         # Validate account ownership
         account = accounts_db.find_one({"id": account_id, "user_id": user["id"]})
         if not account:
@@ -28,10 +33,20 @@ def place_trade(user: dict, payload: dict, users_db, accounts_db, trades_db):
             if account["balance"] < cost:
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient balance")
             account["balance"] -= cost
+            # Track shares for BUY (optional, for paper trading)
+            account.setdefault("positions", {})
+            account["positions"].setdefault(symbol, 0)
+            account["positions"][symbol] += qty
         elif side == "SELL":
-            # For simplicity, assuming unlimited short selling for paper trading or user has position
-            # In a real app, you'd check if the user has enough shares to sell
-            pass
+            # Check if user has enough shares to sell
+            account.setdefault("positions", {})
+            account["positions"].setdefault(symbol, 0)
+            if account["positions"][symbol] < qty:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient shares to sell")
+            account["positions"][symbol] -= qty
+            # Add proceeds to balance
+            proceeds = qty * current_price
+            account["balance"] += proceeds
         else:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid trade side. Must be BUY or SELL")
 
@@ -49,7 +64,7 @@ def place_trade(user: dict, payload: dict, users_db, accounts_db, trades_db):
         }
 
         trades_db.insert(trade)
-        accounts_db.update({"id": account_id}, {"balance": account["balance"]})
+        accounts_db.update({"id": account_id}, {"balance": account["balance"], "positions": account["positions"]})
 
         return trade
     except Exception as e:
@@ -78,6 +93,7 @@ def update_trade(user: dict, payload: dict, users_db, accounts_db, trades_db):
 
 def close_trade(user: dict, payload: dict, users_db, accounts_db, trades_db):
     trade_id = payload["trade_id"]
+    exit_price = payload.get("exit_price")
 
     trade = trades_db.find_one({"id": trade_id, "user_id": user["id"]})
     if not trade:
@@ -86,11 +102,13 @@ def close_trade(user: dict, payload: dict, users_db, accounts_db, trades_db):
     if trade["status"] != "open":
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only open trades can be closed")
 
-    exit_price = DEMO_PRICES[trade["symbol"]]
+    # Use exit_price from payload if provided, else fallback to demo price
+    if exit_price is None:
+        exit_price = DEMO_PRICES[trade["symbol"]]
 
     pnl = calculate_pnl(
         trade["entry_price"],
-        exit_price,
+        float(exit_price),
         trade["qty"],
         trade["side"]
     )
@@ -101,10 +119,10 @@ def close_trade(user: dict, payload: dict, users_db, accounts_db, trades_db):
         account["balance"] += pnl
         accounts_db.update({"id": account["id"]}, {"balance": account["balance"]})
 
-    trade["exit_price"] = exit_price
+    trade["exit_price"] = float(exit_price)
     trade["pnl"] = pnl
     trade["status"] = "closed"
     trade["closed_timestamp"] = datetime.utcnow().isoformat()
 
-    trades_db.update({"id": trade_id}, {"exit_price": exit_price, "pnl": pnl, "status": "closed", "closed_timestamp": trade["closed_timestamp"]})
+    trades_db.update({"id": trade_id}, {"exit_price": float(exit_price), "pnl": pnl, "status": "closed", "closed_timestamp": trade["closed_timestamp"]})
     return trade
